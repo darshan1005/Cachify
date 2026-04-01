@@ -10,7 +10,7 @@ export interface ClientCacheOptions {
 
 const defaultOptions: Required<ClientCacheOptions> = {
   ttlMs: 60_000,
-  storageKeyPrefix: 'cachify:'
+  storageKeyPrefix: 'memcachify:'
 };
 
 function hasLocalStorage(): boolean {
