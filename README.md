@@ -1,4 +1,4 @@
-# Cachify
+# memcachify
 
 Lightweight in-memory caching middleware for Node.js APIs (Express + Fastify-ready).
 
@@ -14,14 +14,14 @@ Lightweight in-memory caching middleware for Node.js APIs (Express + Fastify-rea
 ## Install
 
 ```bash
-npm install cachify
+npm install memcachify
 ```
 
 ## Quick start (Express)
 
 ```ts
 import express from 'express';
-import { cache, invalidate, clearCache } from 'cachify';
+import { cache, invalidate, clearCache } from 'memcachify';
 
 const app = express();
 
@@ -42,7 +42,7 @@ app.listen(3000);
 
 ```ts
 import Fastify from 'fastify';
-import { fastifyCache } from 'cachify';
+import { fastifyCache } from 'memcachify';
 
 const app = Fastify();
 const store = new InMemoryStore({ defaultTTL: 60 });
@@ -55,7 +55,7 @@ app.get('/users', async () => ({ data: [1,2,3] }));
 ## Client cache helper
 
 ```ts
-import { ClientCache } from 'cachify';
+import { ClientCache } from 'memcachify';
 
 const cache = new ClientCache<{ data: string }>({ ttlMs: 60_000 });
 cache.set('userCache', { data: 'hello' });
@@ -66,7 +66,7 @@ console.log(value);
 ## Proxy cache helper
 
 ```ts
-import { InMemoryStore, fetchWithCache } from 'cachify';
+import { InMemoryStore, fetchWithCache } from 'memcachify';
 
 const store = new InMemoryStore({ defaultTTL: 60 });
 const response = await fetchWithCache('https://httpbin.org/get', {}, { store, ttl: 60 });
