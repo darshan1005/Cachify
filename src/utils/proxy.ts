@@ -1,8 +1,8 @@
 import { defaultKeyGenerator } from './key.js';
-import type { InMemoryStore } from '../store/inMemoryStore.js';
+import type { ICacheStore } from '../store/types.js';
 
 export interface FetchCacheOptions {
-  store: InMemoryStore;
+  store: ICacheStore;
   ttl?: number;
   key?: (req: { method: string; url: string; query?: Record<string, any>; body?: any }) => string;
 }

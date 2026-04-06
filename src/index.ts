@@ -1,8 +1,10 @@
 export { InMemoryStore } from './store/inMemoryStore.js';
-export { type CacheOptions } from './middleware/express.js';
+export * from './store/types.js';
+export { type CacheOptions, expressCache } from './middleware/express.js';
 export { type FastifyCacheOptions, fastifyCache } from './middleware/fastify.js';
 export { fetchWithCache, type FetchCacheOptions } from './utils/proxy.js';
 export { ClientCache, type ClientCacheOptions, type ClientCacheEntry } from './client/clientCache.js';
+export { defaultKeyGenerator } from './utils/key.js';
 
 import { expressCache } from './middleware/express.js';
 import { InMemoryStore as DefaultStoreClass } from './store/inMemoryStore.js';

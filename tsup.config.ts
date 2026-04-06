@@ -1,11 +1,16 @@
 import { defineConfig } from 'tsup';
 
 export default defineConfig({
-  entry: ['src/index.ts'],
+  entry: {
+    index: 'src/index.ts',
+    client: 'src/client/clientCache.ts'
+  },
   format: ['cjs', 'esm'],
   dts: true,
   sourcemap: true,
   clean: true,
-  minify: false,
-  target: 'node16'
+  minify: true,
+  target: ['node16', 'es2020'],
+  splitting: true,
+  treeshake: true
 });

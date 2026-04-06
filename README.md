@@ -1,90 +1,152 @@
-# memcachify
+# Memcachify ⚡
 
-Lightweight in-memory caching middleware for Node.js APIs (Express + Fastify-ready).
+**Production-ready, ultra-fast, zero-dependency caching for Node.js.**
 
-## Features
+Memcachify is a powerful, lightweight caching solution designed for high-performance Express and Fastify APIs. It features a custom LRU engine, background revalidation (SWR), and intelligent stampede prevention.
 
-- In-memory Map store with O(1) lookups
-- TTL-based expiration
-- Cache invalidation by key or predicate
-- Auto cleanup of expired entries
-- Express middleware with painless integration
-- API for custom store adapters in future
+[![NPM Version](https://img.shields.io/npm/v/memcachify.svg)](https://www.npmjs.com/package/memcachify)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## Install
+---
+
+## 🔥 Key Features
+
+- 🏎️ **Ultra-Fast LRU Store**: Custom $O(1)$ implementation with item count and byte-size limits.
+- 🔄 **Stale-While-Revalidate (SWR)**: Serve stale data instantly while fetching fresh data in the background.
+- 🛡️ **Stampede Prevention**: Automatic promise coalescing to prevent "Thundering Herd" effects on your database.
+- 🌐 **HTTP Protocol Compliant**: Full support for `Vary`, `ETag`, `If-None-Match`, and `Cache-Control` headers.
+- 📈 **Observability**: Built-in stats tracking (hit rate, evictions) and event hooks (`hit`, `miss`, `evict`).
+- 🏷️ **Tag-based Invalidation**: Invalidate multiple entries at once using custom tags.
+- 📦 **Zero Dependencies**: Core logic is 100% dependency-free for maximum security and minimal footprint.
+- 🖥️ **Universal Support**: Works in Node.js, browsers (localStorage persistence), and Edge workers.
+
+---
+
+## 🚀 Installation
 
 ```bash
 npm install memcachify
 ```
 
-## Quick start (Express)
+---
+
+## 📖 Usage Examples
+
+### 1. Express Middleware
+
+The easiest way to cache your routes. Memcachify automatically handles headers and status codes.
 
 ```ts
 import express from 'express';
-import { cache, invalidate, clearCache } from 'memcachify';
+import { cache, invalidate } from 'memcachify';
 
 const app = express();
 
-app.get('/users', cache({ ttl: 60 }), (req, res) => {
-  res.json({ data: [1, 2, 3] });
+// Cache for 60 seconds
+app.get('/api/products', cache({ ttl: 60 }), (req, res) => {
+  res.json({ products: [...] });
 });
 
-app.post('/users', (req, res) => {
-  // write logic...
-  invalidate((key) => key.includes('/users'));
-  res.status(201).send('created');
+// Manual invalidation
+app.post('/api/products', (req, res) => {
+  invalidate((key) => key.includes('/api/products'));
+  res.status(201).send('Created');
 });
-
-app.listen(3000);
 ```
 
-## Fastify
+### 2. Advanced: Stale-While-Revalidate (SWR)
+
+Keep your API responsive even when the cache expires. SWR serves the stale data while refreshing the cache in the background.
+
+```ts
+app.get('/api/trending', cache({
+  ttl: 30,
+  staleWhileRevalidate: 300, // Serve stale up to 5 mins
+  revalidate: async (req) => {
+    const data = await db.getTrending();
+    return { statusCode: 200, headers: { 'Content-Type': 'application/json' }, body: data };
+  }
+}), (req, res) => {
+  // Initial request handler
+});
+```
+
+### 3. Fastify Middleware
 
 ```ts
 import Fastify from 'fastify';
-import { fastifyCache } from 'memcachify';
+import { fastifyCache, InMemoryStore } from 'memcachify';
 
-const app = Fastify();
-const store = new InMemoryStore({ defaultTTL: 60 });
+const fastify = Fastify();
+const store = new InMemoryStore({ maxItems: 5000 });
 
-await app.register(fastifyCache({ store }));
+fastify.register(fastifyCache({ store, ttl: 60 }));
 
-app.get('/users', async () => ({ data: [1,2,3] }));
+fastify.get('/users', async (req, reply) => {
+  return { users: [] };
+});
 ```
 
-## Client cache helper
+### 4. Browser / Client Cache
+
+MEMcachify comes with a separate client-side bundle that supports `localStorage` persistence.
 
 ```ts
-import { ClientCache } from 'memcachify';
+import { ClientCache } from 'memcachify/client';
 
-const cache = new ClientCache<{ data: string }>({ ttlMs: 60_000 });
-cache.set('userCache', { data: 'hello' });
-const value = cache.get('userCache');
-console.log(value);
+const clientCache = new ClientCache({ 
+  ttlMs: 60_000, 
+  storageKeyPrefix: 'myapp:' 
+});
+
+clientCache.set('user_profile', { name: 'Alice' });
+const user = clientCache.get('user_profile');
 ```
 
-## Proxy cache helper
+---
+
+## 🛠️ Advanced Configuration
+
+### Store Options
+
+Configure the `InMemoryStore` with strict limits to prevent memory leaks.
 
 ```ts
-import { InMemoryStore, fetchWithCache } from 'memcachify';
+const store = new InMemoryStore({
+  maxItems: 10000,           // Max number of entries
+  maxSize: 100 * 1024 * 1024, // 100MB byte limit
+  defaultTTL: 300,            // 5 minutes
+  cleanupIntervalMs: 60000,   // Frequency of expired key cleanup
+  logger: console             // Pino-compatible logger
+});
 
-const store = new InMemoryStore({ defaultTTL: 60 });
-const response = await fetchWithCache('https://httpbin.org/get', {}, { store, ttl: 60 });
-if (response.cached) console.log('from cache');
+// Observability
+store.on('hit', (key) => console.log(`Cache Hit: ${key}`));
+store.on('evict', (key) => console.warn(`Cache Evicted: ${key}`));
+
+console.log(store.stats()); // { hits, misses, evictions, hitRate, ... }
 ```
 
-## API
+### Invalidation
 
-- `cache(options?)` — Express middleware (default TTL 60s).
-- `invalidate(keyOrPredicate)` — invalidate a key or predicate in shared store.
-- `clearCache()` — flush all entries.
-- `InMemoryStore` — class for custom stores or multiple stores.
-
-## Build & test
-
-```bash
-npm install
-npm run build
-npm run test
+```ts
+store.invalidateByTag('category:electronics'); // Invalidate everything tagged
+store.invalidate((key) => key.startsWith('/api/v1')); // Predicate-based
+store.clear(); // Nuclear option
 ```
 
+---
+
+## 🤝 Collaboration & Support
+
+Memcachify is open-source and welcoming to contributions!
+
+- **🐛 Issues**: Found a bug or have a feature request? [Open an issue](https://github.com/darshan1005/memcachify/issues).
+- **🙋 Collaboration**: Want to help out? Feel free to fork the repo and submit a PR. See our [Contribution Guide](CONTRIBUTING.md) for more details.
+- **⭐ Support**: If you find this project useful, please give it a star on GitHub!
+
+---
+
+## 📜 License
+
+MIT © [Darshan Battula](https://github.com/darshan1005)
