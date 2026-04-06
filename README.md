@@ -6,7 +6,7 @@ Memcachify is a powerful, lightweight caching solution designed for high-perform
 
 [![NPM Version](https://img.shields.io/npm/v/memcachify.svg)](https://www.npmjs.com/package/memcachify)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-  [![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)](https://github.com/darshan1005/Cachify)
+[![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)](https://github.com/darshan1005/Cachify)
 
 ---
 
