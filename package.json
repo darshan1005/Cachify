@@ -1,6 +1,6 @@
 {
   "name": "memcachify",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Production-ready lightweight in-memory caching middleware for Node.js (Express + Fastify) & client side caching.",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
